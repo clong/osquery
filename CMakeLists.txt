@@ -154,7 +154,7 @@ if(POSIX)
     -fdata-sections
     -ffunction-sections
   )
-  if(NOT FREEBSD)
+  if(NOT FREEBSD AND NOT DEFINED ENV{OSQUERY_BUILD_SHARED})
     add_compile_options(
       -Werror=shadow
       -fvisibility=hidden
@@ -170,6 +170,7 @@ elseif(WINDOWS)
   add_definitions(-DBOOST_ALL_NO_LIB)
 endif()
 
+set(TEST_ARGS "")
 if(LINUX AND CMAKE_CXX_COMPILER MATCHES "clang")
   # Use the LLVM versions of ar and ranlib to support LTO builds
   find_program(LLVMRANLIB_EXECUTABLE "llvm-ranlib" ENV PATH)
@@ -221,6 +222,19 @@ elseif(DEFINED ENV{SANITIZE})
       # LSAN is not available on OS X 10.12.
       add_compile_options(-fsanitize=leak)
     endif()
+  endif()
+
+  if(LINUX)
+    # Tests that fail TSAN Checks.
+    set(SANITIZE_SKIP_TEST
+      ProcessTests.test_launchExtension
+      BufferedLogForwarderTests.test_index
+      CarverTests.test_carve_files_locally
+      FileEventsTableTests.*
+      YARATest.*
+    )
+    string(REPLACE ";" ":" TEST_ARGS "${SANITIZE_SKIP_TEST}")
+    set(TEST_ARGS "--gtest_filter=-${TEST_ARGS}")
   endif()
 else()
   set(DEBUG FALSE)
@@ -294,23 +308,36 @@ endif()
 # The recommended osquery build, and distributed packages, do not use these.
 if(DEFINED ENV{SKIP_AWS})
   set(SKIP_AWS TRUE)
+  add_definitions(-DSKIP_AWS=1)
 endif()
 if(DEFINED ENV{SKIP_TSK})
   set(SKIP_TSK TRUE)
+  add_definitions(-DSKIP_TSK=1)
 endif()
 if(DEFINED ENV{SKIP_LLDPD})
   set(SKIP_LLDPD TRUE)
+  add_definitions(-DSKIP_LLDPD=1)
 endif()
 if(DEFINED ENV{SKIP_YARA})
   set(SKIP_YARA TRUE)
+  add_definitions(-DSKIP_YARA=1)
+endif()
+if(DEFINED ENV{SKIP_KAFKA})
+  set(SKIP_KAFKA TRUE)
+  add_definitions(-DSKIP_KAFKA=1)
 endif()
 if(DEFINED ENV{SKIP_CARVER})
   set(SKIP_CARVER TRUE)
-  # To remove references to carve functionality in sqlite helper functions
-  add_definitions(
-    -DSKIP_CARVER=1
-  )
+  add_definitions(-DSKIP_CARVER=1)
 endif()
+
+# The kernel builds are skipped by default.
+if(DEFINED ENV{SKIP_KERNEL} AND "$ENV{SKIP_KERNEL}" STREQUAL "False")
+  set(SKIP_KERNEL FALSE)
+else()
+  set(SKIP_KERNEL TRUE)
+endif()
+
 
 # Similar to the feature skips, there are default-build skips.
 if(DEFINED ENV{SKIP_TESTS})
@@ -429,6 +456,9 @@ add_definitions(
   -DSTRIP_FLAG_HELP=1
   -DBOOST_NETWORK_ENABLE_HTTPS
   -DNOMINMAX
+
+  # See boost 1.65 breakage https://github.com/Homebrew/homebrew-core/pull/17150
+  -D__ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES=0
 )
 
 # Remove console output (not handled by logged).
@@ -498,7 +528,6 @@ if(WINDOWS)
 
   ## TODO(FIXME): temporary for now
   include_directories("${WINDOWS_DEP_DIR}/linenoise-ng/local/include/linenoise")
-  include_directories("${WINDOWS_DEP_DIR}/snappy-msvc/tools/snappy-windows-1.1.1.8/include")
 else()
   set(PROCESS_FAMILY "posix")
   set(MKDIR_OPTS "-p")
@@ -582,7 +611,7 @@ add_subdirectory(osquery)
 add_subdirectory(tools/tests)
 
 # Include the kernel building targets/macros
-if(NOT ${OSQUERY_BUILD_SDK_ONLY})
+if(NOT SKIP_KERNEL AND NOT ${OSQUERY_BUILD_SDK_ONLY})
   add_subdirectory(kernel)
 endif()
 

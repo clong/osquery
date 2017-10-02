@@ -12,9 +12,9 @@
 
 #include <osquery/database.h>
 #include <osquery/filesystem.h>
+#include <osquery/query.h>
 
 #include "osquery/core/json.h"
-#include "osquery/database/query.h"
 #include "osquery/tests/test_util.h"
 
 namespace osquery {
@@ -137,8 +137,9 @@ static void DATABASE_query_results(benchmark::State& state) {
   auto query = getOsqueryScheduledQuery();
   while (state.KeepRunning()) {
     DiffResults diff_results;
+    uint64_t counter;
     auto dbq = Query("default", query);
-    dbq.addNewResults(qd, 0, diff_results);
+    dbq.addNewResults(qd, 0, counter, diff_results);
   }
 }
 

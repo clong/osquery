@@ -127,7 +127,7 @@ function main() {
   platform OS
   distro $OS DISTRO
 
-  OUTPUT_PKG_PATH=`realpath "$BUILD_DIR"`/$PACKAGE_NAME$(get_pkg_suffix)
+  OUTPUT_PKG_PATH=`readlink --canonicalize "$BUILD_DIR"`/$PACKAGE_NAME$(get_pkg_suffix)
 
   rm -rf $WORKING_DIR
   rm -f $OUTPUT_PKG_PATH
@@ -257,10 +257,10 @@ function main() {
     BUILDLINK_DEBUG_DIR=$DEBUG_PREFIX/usr/lib/debug/.build-id/64
     if [[ ! "$BUILD_ID_SHELL" = "" ]]; then
       mkdir -p $BUILDLINK_DEBUG_DIR
-      ln -s ../../../../bin/osqueryi $BUILDLINK_DEBUG_DIR/$BUILD_ID_SHELL
-      ln -s ../../bin/osqueryi.debug $BUILDLINK_DEBUG_DIR/$BUILD_ID_SHELL.debug
-      ln -s ../../../../bin/osqueryd $BUILDLINK_DEBUG_DIR/$BUILD_ID_DAEMON
-      ln -s ../../bin/osqueryd.debug $BUILDLINK_DEBUG_DIR/$BUILD_ID_DAEMON.debug
+      ln -sf ../../../../bin/osqueryi $BUILDLINK_DEBUG_DIR/$BUILD_ID_SHELL
+      ln -sf ../../bin/osqueryi.debug $BUILDLINK_DEBUG_DIR/$BUILD_ID_SHELL.debug
+      ln -sf ../../../../bin/osqueryd $BUILDLINK_DEBUG_DIR/$BUILD_ID_DAEMON
+      ln -sf ../../bin/osqueryd.debug $BUILDLINK_DEBUG_DIR/$BUILD_ID_DAEMON.debug
     fi
 
     # Install the non-stripped binaries.
@@ -281,7 +281,7 @@ function main() {
   fi
 
   PACKAGE_DEBUG_DEPENDENCIES=`echo "$PACKAGE_DEBUG_DEPENDENCIES"|tr '-' '_'`
-  OUTPUT_DEBUG_PKG_PATH=`realpath "$BUILD_DIR"`/$PACKAGE_DEBUG_NAME$(get_pkg_suffix)
+  OUTPUT_DEBUG_PKG_PATH=`readlink --canonicalize "$BUILD_DIR"`/$PACKAGE_DEBUG_NAME$(get_pkg_suffix)
   if [[ "$BUILD_DEBUG_PKG" = "true" ]]; then
     rm -f $OUTPUT_DEBUG_PKG_PATH
     CMD="$FPM -s dir -t $PACKAGE_TYPE            \

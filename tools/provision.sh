@@ -20,7 +20,7 @@ LINUXBREW_REPO="https://github.com/Linuxbrew/brew"
 # Set the SHA1 commit hashes for the pinned homebrew Taps.
 # Pinning allows determinism for bottle availability, expect to update often.
 HOMEBREW_CORE="941ca36839ea354031846d73ad538e1e44e673f4"
-LINUXBREW_CORE="abc5c5782c5850f2deff1f3d463945f90f2feaac"
+LINUXBREW_CORE="f54281a496bb7d3dd2f46b2f3067193d05f5013b"
 HOMEBREW_BREW="ac2cbd2137006ebfe84d8584ccdcb5d78c1130d9"
 LINUXBREW_BREW="20bcce2c176469cec271b46d523eef1510217436"
 
@@ -63,6 +63,7 @@ function platform_linux_main() {
   brew_tool libidn
   brew_tool libedit
   brew_tool libtool
+  brew_tool libyaml
   brew_tool m4
   brew_tool autoconf
   brew_tool automake
@@ -70,11 +71,11 @@ function platform_linux_main() {
   # OpenSSL is needed for the final build.
   brew_tool osquery/osquery-local/libxml2
   brew_tool osquery/osquery-local/openssl
+  brew_tool osquery/osquery-local/cmake
 
   # Curl and Python are needed for LLVM mostly.
   brew_tool osquery/osquery-local/curl
   brew_tool osquery/osquery-local/python
-  brew_tool osquery/osquery-local/cmake --without-docs
 
   # Linux library secondary dependencies.
   brew_tool osquery/osquery-local/berkeley-db
@@ -109,7 +110,7 @@ function platform_darwin_main() {
   brew_tool pkg-config
   brew_tool makedepend
   brew_tool ninja
-  brew_tool osquery/osquery-local/cmake --without-docs
+  brew_tool osquery/osquery-local/cmake
   brew_tool clang-format
   brew_tool autoconf
   brew_tool automake
@@ -130,14 +131,12 @@ function platform_darwin_main() {
   brew_dependency osquery/osquery-local/zstd
 
   # List of LLVM-compiled dependencies.
-  brew_dependency osquery/osquery-local/lz4
   brew_dependency osquery/osquery-local/libmagic
   brew_dependency osquery/osquery-local/pcre
   brew_dependency osquery/osquery-local/boost
   brew_dependency osquery/osquery-local/asio
   brew_dependency osquery/osquery-local/cpp-netlib
   brew_dependency osquery/osquery-local/google-benchmark
-  brew_dependency osquery/osquery-local/snappy
   brew_dependency osquery/osquery-local/sleuthkit
   brew_dependency osquery/osquery-local/thrift
   brew_dependency osquery/osquery-local/rocksdb
@@ -148,6 +147,7 @@ function platform_darwin_main() {
   brew_dependency osquery/osquery-local/linenoise-ng
   brew_dependency osquery/osquery-local/augeas
   brew_dependency osquery/osquery-local/lldpd
+  brew_dependency osquery/osquery-local/librdkafka
 
   # POSIX-shared locally-managed tools.
   brew_dependency osquery/osquery-local/zzuf

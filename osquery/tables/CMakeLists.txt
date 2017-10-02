@@ -67,12 +67,12 @@ if(LINUX)
   set(TABLE_PLATFORM "linux")
 
   ADD_OSQUERY_LINK_ADDITIONAL("libresolv.so")
-  ADD_OSQUERY_LINK_ADDITIONAL("cryptsetup devmapper")
+  ADD_OSQUERY_LINK_ADDITIONAL("cryptsetup devmapper lvm2app lvm-internal daemonclient")
   ADD_OSQUERY_LINK_ADDITIONAL("gcrypt gpg-error")
   ADD_OSQUERY_LINK_ADDITIONAL("blkid")
   ADD_OSQUERY_LINK_ADDITIONAL("ip4tc")
 
-  ADD_OSQUERY_LINK_ADDITIONAL("apt-pkg dpkg lzma lz4 bz2")
+  ADD_OSQUERY_LINK_ADDITIONAL("apt-pkg dpkg lzma bz2")
   ADD_OSQUERY_LINK_ADDITIONAL("rpm rpmio beecrypt popt db")
 endif()
 
@@ -122,6 +122,17 @@ foreach(CATEGORY ${TABLE_CATEGORIES})
   )
   ADD_OSQUERY_TABLE_TEST(${OSQUERY_${CATEGORY}_TABLES_TESTS})
 endforeach()
+
+if(NOT SKIP_KERNEL)
+  file(GLOB OSQUERY_KERNEL_TABLES
+    "kernel/*.[cpm]*"
+    "*/${TABLE_PLATFORM}/kernel/*.[cpm]*"
+  )
+  ADD_OSQUERY_LIBRARY_ADDITIONAL(
+    osquery_kernel_tables
+    ${OSQUERY_KERNEL_TABLES}
+  )
+endif()
 
 file(GLOB OSQUERY_UTILITY_TABLES "utility/*.cpp")
 ADD_OSQUERY_LIBRARY_CORE(osquery_tables_utility

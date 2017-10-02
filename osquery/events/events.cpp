@@ -17,7 +17,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include <osquery/config.h>
-#include <osquery/core.h>
+#include <osquery/database.h>
 #include <osquery/events.h>
 #include <osquery/flags.h>
 #include <osquery/logger.h>
@@ -130,7 +130,7 @@ void EventSubscriberPlugin::genTable(RowYield& yield, QueryContext& context) {
         stop = std::min(stop, expr);
       }
     }
-  } else if (kToolType == ToolType::DAEMON && FLAGS_events_optimize) {
+  } else if (Initializer::isDaemon() && FLAGS_events_optimize) {
     // If the daemon is querying a subscriber without a 'time' constraint and
     // allows optimization, only emit events since the last query.
     std::string query_name;
@@ -821,7 +821,7 @@ Status EventFactory::registerEventPublisher(const PluginRef& pub) {
     specialized_pub->state(EventState::EVENT_SETUP);
     if (!status.ok()) {
       // Only start event loop if setUp succeeds.
-      LOG(INFO) << "Event publisher failed setup: " << type_id << ": "
+      LOG(INFO) << "Event publisher not enabled: " << type_id << ": "
                 << status.what();
       specialized_pub->isEnding(true);
       return status;

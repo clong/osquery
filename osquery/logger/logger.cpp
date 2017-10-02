@@ -325,7 +325,7 @@ void setVerboseLevel() {
     // Do NOT log INFO, WARNING, ERROR to stderr.
     // Do log only WARNING, ERROR to log sinks.
     auto default_level = google::GLOG_INFO;
-    if (kToolType == ToolType::SHELL) {
+    if (Initializer::isShell()) {
       default_level = google::GLOG_WARNING;
     }
 
@@ -339,8 +339,7 @@ void setVerboseLevel() {
   }
 
   if (!Flag::isDefault("logger_min_status")) {
-    long int i = 0;
-    safeStrtol(Flag::getValue("logger_min_status"), 10, i);
+    auto i = Flag::getInt32Value("logger_min_status");
     FLAGS_minloglevel = static_cast<decltype(FLAGS_minloglevel)>(i);
   }
 
@@ -351,7 +350,7 @@ void setVerboseLevel() {
   }
 }
 
-void initStatusLogger(const std::string& name) {
+void initStatusLogger(const std::string& name, bool init_glog) {
   FLAGS_alsologtostderr = false;
   FLAGS_colorlogtostderr = true;
   FLAGS_logbufsecs = 0; // flush the log buffer immediately
@@ -361,7 +360,9 @@ void initStatusLogger(const std::string& name) {
 
   setVerboseLevel();
   // Start the logging, and announce the daemon is starting.
-  google::InitGoogleLogging(name.c_str());
+  if (init_glog) {
+    google::InitGoogleLogging(name.c_str());
+  }
   BufferedLogSink::get().setUp();
 }
 
@@ -466,7 +467,7 @@ void BufferedLogSink::send(google::LogSeverity severity,
   }
 
   // The daemon will relay according to the schedule.
-  if (enabled_ && kToolType != ToolType::DAEMON) {
+  if (enabled_ && !Initializer::isDaemon()) {
     relayStatusLogs(FLAGS_logger_status_sync);
   }
 }
